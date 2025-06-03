@@ -1,146 +1,146 @@
-import React, { useEffect, useState } from "react";
-import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  useWallet,
-  WalletProvider
-} from "@solana/wallet-adapter-react";
+  Connection,
+  PublicKey,
+  clusterApiUrl,
+  SystemProgram,
+} from "@solana/web3.js";
 import {
-  WalletModalProvider,
-  WalletMultiButton
-} from "@solana/wallet-adapter-react-ui";
-import {
-  PhantomWalletAdapter
-} from "@solana/wallet-adapter-wallets";
-import {
-  AnchorProvider,
   Program,
+  AnchorProvider,
   web3,
-  BN
+  utils,
+  BN,
 } from "@project-serum/anchor";
+import idl from "./idl.json";
 import {
   getAssociatedTokenAddress,
   createAssociatedTokenAccountInstruction,
-  TOKEN_PROGRAM_ID
+  getAccount,
+  TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import idl from "./idl.json";
+import {
+  WalletAdapterNetwork,
+} from "@solana/wallet-adapter-base";
+import {
+  ConnectionProvider,
+  WalletProvider,
+} from "@solana/wallet-adapter-react";
+import {
+  WalletModalProvider,
+  WalletMultiButton,
+} from "@solana/wallet-adapter-react-ui";
+import {
+  PhantomWalletAdapter,
+} from "@solana/wallet-adapter-wallets";
 
-require("@solana/wallet-adapter-react-ui/styles.css");
+import "@solana/wallet-adapter-react-ui/styles.css";
 
 const programID = new PublicKey("Ccy8Qws1jsWvxmtMpdunNkRk7cPen9xGHo9V9Z7KnGM");
 const SOL_DOGE_MINT = new PublicKey("9Ygtvst4rKMUK1jVhqpXFsGzDBkPCGAmugiCg9KgGGA6");
-const network = "https://api.devnet.solana.com";
-const opts = { preflightCommitment: "processed" };
+const network = WalletAdapterNetwork.Devnet;
+const opts = {
+  preflightCommitment: "processed",
+};
 
-function App() {
-  const wallet = useWallet();
-  const [program, setProgram] = useState(null);
+const App = () => {
+  const [walletAddress, setWalletAddress] = useState(null);
   const [provider, setProvider] = useState(null);
+  const [program, setProgram] = useState(null);
+  const connection = useMemo(() => new Connection(clusterApiUrl(network), "processed"), []);
+
+  const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
+
+  const getProvider = async () => {
+    const anchorProvider = new AnchorProvider(connection, window.solana, opts);
+    const program = new Program(idl, programID, anchorProvider);
+    setProvider(anchorProvider);
+    setProgram(program);
+  };
 
   useEffect(() => {
-    const connection = new Connection(network, opts.preflightCommitment);
-    const provider = new AnchorProvider(connection, wallet, opts);
-    const program = new Program(idl, programID, provider);
-    setProvider(provider);
-    setProgram(program);
-  }, [wallet]);
+    getProvider();
+  }, []);
 
-  const stake = async () => {
-    if (!program || !wallet.publicKey) return;
-
-    const amount = new BN(1000); // Beispiel: 1000 SDOGE
-
-    const [userStakePDA] = await PublicKey.findProgramAddress(
-      [Buffer.from("user-stake"), wallet.publicKey.toBuffer()],
+  const stakeTokens = async (amount) => {
+    const staker = provider.wallet.publicKey;
+    const [userStakePDA] = await PublicKey.findProgramAddressSync(
+      [Buffer.from("user-stake"), staker.toBuffer()],
       programID
     );
 
-    const userTokenAccount = await getAssociatedTokenAddress(
-      SOL_DOGE_MINT,
-      wallet.publicKey
-    );
+    const fromTokenAccount = await getAssociatedTokenAddress(SOL_DOGE_MINT, staker);
+    const vaultTokenAccount = await getAssociatedTokenAddress(SOL_DOGE_MINT, programID, true);
 
-    const vaultTokenAccount = await getAssociatedTokenAddress(
-      SOL_DOGE_MINT,
-      programID,
-      true
-    );
-
-    const tx = await program.methods
-      .stake(amount)
+    await program.methods
+      .stake(new BN(amount))
       .accounts({
-        staker: wallet.publicKey,
+        staker,
         userStake: userStakePDA,
-        fromTokenAccount: userTokenAccount,
-        vaultTokenAccount: vaultTokenAccount,
+        fromTokenAccount,
+        vaultTokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
-        systemProgram: SystemProgram.programId
+        systemProgram: SystemProgram.programId,
       })
       .rpc();
 
-    console.log("Stake transaction signature", tx);
+    alert("✅ Stake erfolgreich!");
   };
 
-  const claim = async () => {
-    if (!program || !wallet.publicKey) return;
-
-    const [userStakePDA] = await PublicKey.findProgramAddress(
-      [Buffer.from("user-stake"), wallet.publicKey.toBuffer()],
+  const claimRewards = async () => {
+    const staker = provider.wallet.publicKey;
+    const [userStakePDA] = await PublicKey.findProgramAddressSync(
+      [Buffer.from("user-stake"), staker.toBuffer()],
       programID
     );
 
-    const userTokenAccount = await getAssociatedTokenAddress(
-      SOL_DOGE_MINT,
-      wallet.publicKey
+    const rewardVault = await getAssociatedTokenAddress(SOL_DOGE_MINT, programID, true);
+    const userTokenAccount = await getAssociatedTokenAddress(SOL_DOGE_MINT, staker);
+    const [vaultAuthority] = await PublicKey.findProgramAddressSync(
+      [Buffer.from("vault-authority")],
+      programID
     );
-
-    const vaultTokenAccount = await getAssociatedTokenAddress(
-      SOL_DOGE_MINT,
-      programID,
-      true
-    );
-
-    const [vaultAuthority] = await PublicKey.findProgramAddress(
-      [Buffer.from("vault")],
+    const [stakeStatePDA] = await PublicKey.findProgramAddressSync(
+      [Buffer.from("stake-state")],
       programID
     );
 
-    const tx = await program.methods
+    await program.methods
       .claim()
       .accounts({
         userStake: userStakePDA,
-        rewardVault: vaultTokenAccount,
-        userTokenAccount: userTokenAccount,
-        vaultAuthority: vaultAuthority,
-        stakeState: programID,
+        rewardVault,
+        userTokenAccount,
+        vaultAuthority,
+        stakeState: stakeStatePDA,
         tokenProgram: TOKEN_PROGRAM_ID,
-        staker: wallet.publicKey
+        staker,
       })
       .rpc();
 
-    console.log("Claim transaction signature", tx);
+    alert("🎉 Belohnungen erfolgreich beansprucht!");
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <WalletMultiButton />
-      <h2>SolDoge Staking</h2>
-      <button onClick={stake} disabled={!wallet.connected}>
-        Stake
-      </button>
-      <button onClick={claim} disabled={!wallet.connected}>
-        Claim
-      </button>
-    </div>
+    <ConnectionProvider endpoint={clusterApiUrl(network)}>
+      <WalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>
+          <div style={{ padding: 40 }}>
+            <h1>🐶 SolDoge Staking DApp</h1>
+            <WalletMultiButton />
+            {provider && (
+              <>
+                <br />
+                <button onClick={() => stakeTokens(1000000)}>📥 1 SolDoge staken</button>
+                <br /><br />
+                <button onClick={claimRewards}>💰 Belohnung abholen</button>
+              </>
+            )}
+          </div>
+        </WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
   );
-}
+};
 
-const wallets = [new PhantomWalletAdapter()];
-const WrappedApp = () => (
-  <WalletProvider wallets={wallets} autoConnect>
-    <WalletModalProvider>
-      <App />
-    </WalletModalProvider>
-  </WalletProvider>
-);
-
-export default WrappedApp;
+export default App;
