@@ -9,9 +9,7 @@
         { "name": "admin", "isMut": true, "isSigner": true },
         { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],
-      "args": [
-        { "name": "rewardRate", "type": "u64" }
-      ]
+      "args": []
     },
     {
       "name": "stake",
@@ -23,9 +21,7 @@
         { "name": "tokenProgram", "isMut": false, "isSigner": false },
         { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],
-      "args": [
-        { "name": "amount", "type": "u64" }
-      ]
+      "args": [{ "name": "amount", "type": "u64" }]
     },
     {
       "name": "claim",
