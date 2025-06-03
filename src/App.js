@@ -1,30 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Connection, PublicKey } from "@solana/web3.js";
 import {
-  Connection,
-  PublicKey,
-  clusterApiUrl,
-  SystemProgram,
-} from "@solana/web3.js";
-import {
-  Program,
-  AnchorProvider,
-  web3,
-  utils,
-  BN,
-} from "@project-serum/anchor";
-import idl from "./idl.json";
-import {
-  getAssociatedTokenAddress,
-  createAssociatedTokenAccountInstruction,
-  getAccount,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
-import {
-  WalletAdapterNetwork,
-} from "@solana/wallet-adapter-base";
-import {
-  ConnectionProvider,
+  useWallet,
   WalletProvider,
+  ConnectionProvider,
 } from "@solana/wallet-adapter-react";
 import {
   WalletModalProvider,
@@ -33,110 +12,69 @@ import {
 import {
   PhantomWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-
 import "@solana/wallet-adapter-react-ui/styles.css";
 
-const programID = new PublicKey("Ccy8Qws1jsWvxmtMpdunNkRk7cPen9xGHo9V9Z7KnGM");
+const SOLANA_NETWORK = "https://api.mainnet-beta.solana.com";
 const SOL_DOGE_MINT = new PublicKey("9Ygtvst4rKMUK1jVhqpXFsGzDBkPCGAmugiCg9KgGGA6");
-const network = WalletAdapterNetwork.Devnet;
-const opts = {
-  preflightCommitment: "processed",
-};
 
-const App = () => {
-  const [walletAddress, setWalletAddress] = useState(null);
-  const [provider, setProvider] = useState(null);
-  const [program, setProgram] = useState(null);
-  const connection = useMemo(() => new Connection(clusterApiUrl(network), "processed"), []);
+const AppContent = () => {
+  const { publicKey } = useWallet();
+  const [balance, setBalance] = useState(0);
+  const [staked, setStaked] = useState(() => Number(localStorage.getItem("staked") || 0));
+  const [claimed, setClaimed] = useState(() => Number(localStorage.getItem("claimed") || 0));
 
-  const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
-
-  const getProvider = async () => {
-    const anchorProvider = new AnchorProvider(connection, window.solana, opts);
-    const program = new Program(idl, programID, anchorProvider);
-    setProvider(anchorProvider);
-    setProgram(program);
-  };
+  const connection = new Connection(SOLANA_NETWORK);
 
   useEffect(() => {
-    getProvider();
-  }, []);
+    if (!publicKey) return;
+    (async () => {
+      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
+        mint: SOL_DOGE_MINT,
+      });
+      const amount = tokenAccounts.value[0]?.account?.data?.parsed?.info?.tokenAmount?.uiAmount || 0;
+      setBalance(amount);
+    })();
+  }, [publicKey]);
 
-  const stakeTokens = async (amount) => {
-    const staker = provider.wallet.publicKey;
-    const [userStakePDA] = await PublicKey.findProgramAddressSync(
-      [Buffer.from("user-stake"), staker.toBuffer()],
-      programID
-    );
-
-    const fromTokenAccount = await getAssociatedTokenAddress(SOL_DOGE_MINT, staker);
-    const vaultTokenAccount = await getAssociatedTokenAddress(SOL_DOGE_MINT, programID, true);
-
-    await program.methods
-      .stake(new BN(amount))
-      .accounts({
-        staker,
-        userStake: userStakePDA,
-        fromTokenAccount,
-        vaultTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
-
-    alert("✅ Stake erfolgreich!");
+  const handleStake = () => {
+    const newAmount = staked + 100;
+    setStaked(newAmount);
+    localStorage.setItem("staked", newAmount);
   };
 
-  const claimRewards = async () => {
-    const staker = provider.wallet.publicKey;
-    const [userStakePDA] = await PublicKey.findProgramAddressSync(
-      [Buffer.from("user-stake"), staker.toBuffer()],
-      programID
-    );
-
-    const rewardVault = await getAssociatedTokenAddress(SOL_DOGE_MINT, programID, true);
-    const userTokenAccount = await getAssociatedTokenAddress(SOL_DOGE_MINT, staker);
-    const [vaultAuthority] = await PublicKey.findProgramAddressSync(
-      [Buffer.from("vault-authority")],
-      programID
-    );
-    const [stakeStatePDA] = await PublicKey.findProgramAddressSync(
-      [Buffer.from("stake-state")],
-      programID
-    );
-
-    await program.methods
-      .claim()
-      .accounts({
-        userStake: userStakePDA,
-        rewardVault,
-        userTokenAccount,
-        vaultAuthority,
-        stakeState: stakeStatePDA,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        staker,
-      })
-      .rpc();
-
-    alert("🎉 Belohnungen erfolgreich beansprucht!");
+  const handleClaim = () => {
+    const reward = staked * 0.01; // 1% Daily reward (simuliert)
+    const totalClaimed = claimed + reward;
+    setClaimed(totalClaimed);
+    localStorage.setItem("claimed", totalClaimed);
   };
 
   return (
-    <ConnectionProvider endpoint={clusterApiUrl(network)}>
+    <div style={{ padding: 30 }}>
+      <h1>SolDoge Staking 🐶</h1>
+      <WalletMultiButton />
+      {publicKey && (
+        <div style={{ marginTop: 20 }}>
+          <p><b>Wallet:</b> {publicKey.toBase58()}</p>
+          <p><b>SolDoge Balance:</b> {balance}</p>
+          <p><b>Gestaked:</b> {staked} SolDoge</p>
+          <p><b>Reward:</b> {(staked * 0.01).toFixed(2)} SolDoge</p>
+          <p><b>Gesamt Claimed:</b> {claimed.toFixed(2)} SolDoge</p>
+          <button onClick={handleStake}>Stake 100</button>
+          <button onClick={handleClaim} style={{ marginLeft: 10 }}>Claim</button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const App = () => {
+  const wallets = [new PhantomWalletAdapter()];
+  return (
+    <ConnectionProvider endpoint={SOLANA_NETWORK}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <div style={{ padding: 40 }}>
-            <h1>🐶 SolDoge Staking DApp</h1>
-            <WalletMultiButton />
-            {provider && (
-              <>
-                <br />
-                <button onClick={() => stakeTokens(1000000)}>📥 1 SolDoge staken</button>
-                <br /><br />
-                <button onClick={claimRewards}>💰 Belohnung abholen</button>
-              </>
-            )}
-          </div>
+          <AppContent />
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
