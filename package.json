@@ -12,7 +12,7 @@
     "react-scripts": "5.0.1",
     "@solana/web3.js": "^1.88.2",
     "@solana/wallet-adapter-base": "^0.10.3",
-    "@solana/wallet-adapter-react": "^0.15.6"
+    "@solana/wallet-adapter-base": "^0.10.3"
   },
   "devDependencies": {
     "typescript": "4.9.5"
