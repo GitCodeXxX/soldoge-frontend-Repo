@@ -2,20 +2,13 @@
   "name": "soldoge-staking-sim",
   "version": "1.0.0",
   "private": true,
-}
-  "dependencies": {"typescript": "4.9.5"
+  "dependencies": {
     "@solana/web3.js": "^1.88.2",
     "@solana/wallet-adapter-base": "^0.10.3",
-    "@solana/wallet-adapter-react": "^0.15.15",
-    "@solana/wallet-adapter-react-ui": "^0.15.15",
-    "@solana/wallet-adapter-wallets": "^0.15.15",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1"
+    "@solana/wallet-adapter-react": "^0.15.6"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "build": "react-scripts build"
   }
+}
