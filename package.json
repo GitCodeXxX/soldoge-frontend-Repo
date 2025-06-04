@@ -1,6 +1,10 @@
 {
+  "{
   "name": "soldoge-staking-sim",
   "version": "1.0.0",
+  "private": true,
+  ...
+}
   "private": true,
   "dependencies": {"typescript": "4.9.5"
     "@solana/web3.js": "^1.88.2",
