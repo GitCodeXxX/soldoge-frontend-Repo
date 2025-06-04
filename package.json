@@ -3,15 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
     "@solana/web3.js": "^1.88.2",
     "@solana/wallet-adapter-base": "^0.10.3",
-    "@solana/wallet-adapter-react": "^0.15.6"
+    "@solana/wallet-adapter-react": "^0.15.15",
+    "@solana/wallet-adapter-react-ui": "^0.15.15",
+    "@solana/wallet-adapter-wallets": "^0.15.15"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build"
   }
 }
-git add package.json
-git commit -m "Fix package.json syntax"
-git push origin main
