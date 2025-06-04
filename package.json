@@ -1,5 +1,4 @@
 {
-  "{
   "name": "soldoge-staking-sim",
   "version": "1.0.0",
   "private": true,
@@ -20,4 +19,3 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   }
-}
