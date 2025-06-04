@@ -2,7 +2,7 @@
   "name": "soldoge-staking-sim",
   "version": "1.0.0",
   "private": true,
-  "dependencies": {
+  "dependencies": {"typescript": "4.9.5"
     "@solana/web3.js": "^1.88.2",
     "@solana/wallet-adapter-base": "^0.10.3",
     "@solana/wallet-adapter-react": "^0.15.15",
