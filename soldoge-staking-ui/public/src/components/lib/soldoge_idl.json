@@ -1,0 +1,9 @@
+{
+  "version": "0.1.0",
+  "name": "soldoge_staking",
+  "instructions": [],
+  "accounts": [],
+  "metadata": {
+    "address": "YOUR_PROGRAM_ID_HERE"
+  }
+}
