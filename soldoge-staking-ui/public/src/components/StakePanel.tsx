@@ -1,28 +1,13 @@
 import { useWallet } from "@solana/wallet-adapter-react";
-import { getProgram } from "../lib/anchor";
 import { useState } from "react";
-import { PublicKey, Transaction } from "@solana/web3.js";
-import { getOrCreateATA } from "../lib/utils";
-
-const SOL_DOGE_MINT = new PublicKey("9Ygtvst4rKMUK1jVhqpXFsGzDBkPCGAmugiCg9KgGGA6");
 
 export default function StakePanel() {
-  const { publicKey, sendTransaction, wallet } = useWallet();
+  const { publicKey } = useWallet();
   const [amount, setAmount] = useState("");
 
   const stakeTokens = async () => {
-    if (!publicKey || !wallet) return;
-    const program = getProgram(wallet);
-
-    const { ata, ix } = await getOrCreateATA({
-      owner: publicKey,
-      mint: SOL_DOGE_MINT,
-      payer: publicKey,
-    });
-
-    const tx = new Transaction().add(ix);
-    await sendTransaction(tx, program.provider.connection);
-    console.log("Staked", amount);
+    if (!publicKey) return alert("Please connect wallet first.");
+    alert(`(Demo) Staking ${amount} $SolDoge from ${publicKey.toBase58()}`);
   };
 
   return (
