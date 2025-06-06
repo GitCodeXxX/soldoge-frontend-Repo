@@ -1,12 +1,15 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { AnchorProvider, Program, Idl } from "@project-serum/anchor";
-import idl from "./soldoge_idl.json"; // Copy from `target/idl/soldoge_staking.json`
+import idl from "./soldoge_idl.json";
 
-export const PROGRAM_ID = new PublicKey("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkgEoYy3z2i5A");
+export const PROGRAM_ID = new PublicKey("Your_Program_ID_Here"); // Replace this
+
 export const connection = new Connection("https://api.devnet.solana.com");
 
 export function getProvider(wallet: any) {
-  return new AnchorProvider(connection, wallet, { commitment: "confirmed" });
+  return new AnchorProvider(connection, wallet, {
+    commitment: "confirmed"
+  });
 }
 
 export function getProgram(wallet: any) {
