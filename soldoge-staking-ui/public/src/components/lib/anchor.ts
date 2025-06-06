@@ -1,5 +1,4 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { AnchorProvider, Program, Idl } from "@project-serum/anchor";
 import idl from "./soldoge_idl.json";
 
 export const PROGRAM_ID = new PublicKey("Your_Program_ID_Here"); // Replace this
