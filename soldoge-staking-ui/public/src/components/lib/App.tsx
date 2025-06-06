@@ -5,7 +5,7 @@ import APYStats from "./components/APYStats";
 import VestingTimer from "./components/VestingTimer";
 
 function App() {
-  const fakeLastStake = Math.floor(Date.now() / 1000) - 3 * 86400; // simulate 3 days ago
+  const fakeLastStake = Math.floor(Date.now() / 1000) - 2 * 86400;
 
   return (
     <div className="bg-black min-h-screen p-6 text-white">
