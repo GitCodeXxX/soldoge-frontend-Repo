@@ -1,7 +1,13 @@
 {
   "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "jsx": "react-jsx",
+    "strict": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    ...
-  }
+    "skipLibCheck": true
+  },
+  "include": ["src"]
 }
