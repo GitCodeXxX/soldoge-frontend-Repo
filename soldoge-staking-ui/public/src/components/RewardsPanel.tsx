@@ -1,15 +1,11 @@
 import { useWallet } from "@solana/wallet-adapter-react";
-import { getProgram } from "../lib/anchor";
 
 export default function RewardsPanel() {
-  const { publicKey, wallet } = useWallet();
+  const { publicKey } = useWallet();
 
   const claimRewards = async () => {
-    if (!publicKey || !wallet) return;
-    const program = getProgram(wallet);
-
-    console.log("Claiming rewards for", publicKey.toBase58());
-    // TODO: invoke `program.methods.claim()` with proper accounts
+    if (!publicKey) return alert("Please connect wallet first.");
+    alert(`(Demo) Claiming rewards for ${publicKey.toBase58()}`);
   };
 
   return (
