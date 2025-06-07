@@ -1,5 +1,3 @@
 [build]
-publish = "soldoge-staking-ui/dist"
-command = "npm ci && npm run build"
-cache = false
-node_version = "18.20.8"
+command = "npm install && npm run build"
+publish = "soldoge-staking-ui/soldoge-staking-ui/dist"
