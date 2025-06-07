@@ -1,7 +1,6 @@
 [build]
-  base = "soldoge-staking-ui"
-  publish = "dist"
-  command = "npm install --legacy-peer-deps && npm run build"
-
+publish = "soldoge-staking-ui/dist"
+command = "npm ci && npm run build"
+cache = false
 [build]
 node_version = "18.20.8"
