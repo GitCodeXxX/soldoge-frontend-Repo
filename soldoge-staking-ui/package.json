@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@solana/spl-token": "^0.3.8",
-    "@solana/wallet-adapter-base": "^0.10.1",
+    "@solana/wallet-adapter-base": "^0.9.26",
     "@solana/wallet-adapter-react": "^0.15.24",
     "@solana/wallet-adapter-react-ui": "^0.9.19",
     "@solana/wallet-adapter-wallets": "^0.18.5",
